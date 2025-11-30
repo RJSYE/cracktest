@@ -8,7 +8,7 @@ import secrets
 import string
 import jwt
 import datetime
-
+import bcrypt
 conn = sqlite3.connect("users.db")
 cursor  = conn.cursor()
 cursor.execute("""CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY AUTOINCREMENT , username TEXT UNIQUE NOT NULL,password TEXT NOT NULL)""")
@@ -20,6 +20,7 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS uploads ( author TEXT NOT NULL , de
 conn.commit()
 conn.close()
 SECRET_KEY = "aZ7kP0mH3qR9tYcB4xL2"
+
 app = Flask(__name__)
 @app.route('/',methods=['GET'])
 def main():       
@@ -46,9 +47,10 @@ def login():
    id  = request.form.get("id")
    password = request.form.get("password")
    try:
-      hash_object = hashlib.sha256()
-      hash_object.update(password.encode())
-      hashed_password = hash_object.hexdigest()              
+      salt = bcrypt.gensalt()
+      
+      hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)    
+      print(hashed_password)         
       conn = sqlite3.connect("users.db")
       cursor  = conn.cursor()
       cursor.execute("SELECT * FROM users WHERE username = ? AND password = ? ",(id,hashed_password))
@@ -75,10 +77,10 @@ def login():
 @app.route('/register',methods=['POST'])
 def register():
    name = request.form.get("name")        
-   pwd = request.form.get("pwd")
-   hash_object = hashlib.sha256()
-   hash_object.update(pwd.encode())
-   hashed_pwd = hash_object.hexdigest()
+   pwd = request.form.get("pwd") 
+   # Generate salt and hash the password
+   salt = bcrypt.gensalt()
+   hashed_pwd = bcrypt.hashpw(pwd.encode('utf-8'), salt)
    conn = sqlite3.connect("users.db")    
    cursor = conn.cursor()
    cursor.execute("SELECT * FROM users WHERE username = ?",(name,))
@@ -86,7 +88,7 @@ def register():
    if result:
       print("아이디가 이미 존재합니다.")
       conn.close()
-      return "already exist id"
+      return "failed to regist"
    else:
       print("계정 생성에 성공했습니다")
       print(name)
