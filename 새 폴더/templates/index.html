@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form>
+        {% for content in contents %}
+        <li>작성자 : {{author[loop.index]}}
+        제목 : {{description[loop.index]}} 
+        내용 : {{ content }}
+        </li>
+        {% endfor %}
+    </form>            
+</body>
+</html>                           
